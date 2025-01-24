@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>3D Tetris</title>
+    <link rel="stylesheet" href="style/style.css" />
+  </head>
+  <body>
+    <script src="javascript/three.js"></script>
+    <script src="javascript/configuration.js"></script>
+    <script src="javascript/boundingBox.js"></script>
+    <script src="javascript/movingBlock.js"></script>
+    <script src="javascript/tetris.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/annyang/2.6.1/annyang.min.js"></script>
+
+    <div id="menu">
+      <p id="instruction">
+        Say "start" to play the game.<br />
+        Use commands like "left", "right", "rotate", "drop", "pause", or "resume".
+      </p>
+      <button id="play-button"> Start </button>
+    </div>
+    <div id="game-over" style="display: none;">
+      <p> Game over! </p>
+    </div>
+    <div id="points-box">0</div>
+    <div id="controls" style="display: none;">
+      <button id="pause-button">Pause</button>
+      <button id="resume-button">Resume</button>
+      <button id="home-button">Home</button>
+    </div>
+
+    <script>
+      
+      let gameStarted = false;
+      let isPaused = false;
+
+      // Function to speak text
+      function speakText(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        window.speechSynthesis.speak(utterance);
+        console.log(text);
+      }
+
+      // Function to start the game
+      const startGame = () => {
+        if (!gameStarted) {
+          document.getElementById("menu").style.display = "none";
+          document.getElementById("controls").style.display = "block";
+          document.getElementById("points-box").style.display = "block";
+          gameStarted = true;
+          isPaused = false;
+          newGame(); // فراخوانی تابع شروع بازی
+          speakText("The game has started. Use voice commands to control it.");
+        }
+      };
+
+      // Function to pause the game
+      const pauseGame = () => {
+        if (gameStarted && !isPaused) {
+          isPaused = true;
+          speakText("The game is paused.");
+          isGameOver = true; // متوقف کردن حلقه انیمیشن
+        }
+      };
+
+      // Function to resume the game
+      const resumeGame = () => {
+        if (gameStarted && isPaused) {
+          isPaused = false;
+          speakText("The game is resuming.");
+          isGameOver = false; // از سرگیری حلقه انیمیشن
+          animate();
+        }
+      };
+
+      // Function to return to home
+      const goHome = () => {
+  speakText("Returning to home screen.");
+  // استفاده از Vue Router برای بازگشت به صفحه اصلی
+  window.location.href = "/Home"; // این مسیر باید تنظیمات router شما را داشته باشد
+};
+      
+      // Add voice commands with annyang
+      if (annyang) {
+        const commands = {
+          start: () => startGame(),
+          pause: () => pauseGame(),
+          resume: () => resumeGame(),
+          home: () => goHome(),
+          left: () => movingBlock.move(-1, 0, 0),
+          right: () => movingBlock.move(1, 0, 0),
+          rotate: () => movingBlock.rotate(90, 0, 0),
+          drop: () => movingBlock.move(0, 0, -1),
+        };
+
+        // Add commands to annyang
+        annyang.addCommands(commands);
+
+        // Show what the user said
+        annyang.addCallback("result", (phrases) => {
+          console.log("You said:", phrases[0]);
+        });
+
+        // Start listening
+        annyang.start();
+      } else {
+        alert("Voice recognition is not supported in your browser.");
+      }
+
+      // Assign click events to the buttons
+      document.getElementById("play-button").onclick = startGame;
+      document.getElementById("pause-button").onclick = pauseGame;
+      document.getElementById("resume-button").onclick = resumeGame;
+      document.getElementById("home-button").onclick = goHome;
+    </script>
+  </body>
+</html>
